@@ -57,7 +57,10 @@ object StringsManager {
         "guide_q2" to "व्हॉट्सॲप किंवा ईमेल मधील फाईल्स थेट कशा उघडाव्यात?",
         "guide_a2" to "१. व्हॉट्सॲप मधील कोणत्याही पीडीएफ किंवा एक्सेल फाईलवर क्लिक करा.\n२. समोर पर्याय आल्यास 'DocuViewer' निवडा.\n३. खाली 'Always / नेहमी' पर्याय निवडा.\nयानंतर प्रत्येक वेळी फाईल थेट या ॲपमध्ये सेकंदात उघडेल!",
         "guide_q3" to "मोठ्या एक्सेल (.xlsx) फाईल्स कशा दिसतात?",
-        "guide_a3" to "DocuViewer मध्ये हाय-स्पीड XML पार्सर आहे, जो मल्टी-शीट, सर्च आणि डेटा कॅल्क्युलेशन (Sum/Avg) ला सपोर्ट करतो. तुम्ही दोन बोटांनी झूम करू शकता किंवा फॉन्ट साईझ बदलू शकता."
+        "guide_a3" to "DocuViewer मध्ये हाय-स्पीड XML पार्सर आहे, जो मल्टी-शीट, सर्च आणि डेटा कॅल्क्युलेशन (Sum/Avg) ला सपोर्ट करतो. तुम्ही दोन बोटांनी झूम करू शकता किंवा फॉन्ट साईझ बदलू शकता.",
+        "watermark_text" to "निर्मिती: प्रदीप चव्हाण (Making by Pradeep Chavan)",
+        "watermark_short" to "Making by Pradeep Chavan",
+        "creator_label" to "संकल्पना व निर्मिती: प्रदीप चव्हाण"
     )
 
     private val englishStrings = mapOf(
@@ -104,6 +107,9 @@ object StringsManager {
         "guide_q2" to "How to open files directly from WhatsApp or Gmail?",
         "guide_a2" to "1. Tap any PDF or Excel file in WhatsApp.\n2. In the 'Open with' popup, select 'DocuViewer'.\n3. Choose 'Always'.\nNow all documents will open instantly without having to save or copy them first!",
         "guide_q3" to "How does Excel (.xlsx) viewing work?",
-        "guide_a3" to "DocuViewer includes a built-in high-speed XML & CSV streaming engine supporting multiple sheets, text search, formula value display, and instant cell statistics (Sum, Average, Count)."
+        "guide_a3" to "DocuViewer includes a built-in high-speed XML & CSV streaming engine supporting multiple sheets, text search, formula value display, and instant cell statistics (Sum, Average, Count).",
+        "watermark_text" to "Made by Pradeep Chavan (निर्मिती: प्रदीप चव्हाण)",
+        "watermark_short" to "Making by Pradeep Chavan",
+        "creator_label" to "Concept & Creation: Pradeep Chavan"
     )
 }

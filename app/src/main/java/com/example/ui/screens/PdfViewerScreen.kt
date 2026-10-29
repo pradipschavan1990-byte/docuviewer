@@ -299,6 +299,22 @@ fun PdfViewerScreen(
                             translationY = offset.y
                         )
                 )
+
+                // Watermark: Making by Pradeep Chavan
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                    color = Color.Black.copy(alpha = 0.55f),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = "मेकिंग बाय: प्रदीप चव्हाण",
+                        color = Color.White.copy(alpha = 0.95f),
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                    )
+                }
             } else {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }

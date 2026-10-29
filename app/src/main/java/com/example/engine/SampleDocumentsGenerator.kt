@@ -162,13 +162,13 @@ object SampleDocumentsGenerator {
         }
 
         // Footer Stamp
-        y += 40f
+        y += 35f
         val stampBg = Paint().apply {
             color = Color.rgb(238, 242, 255)
             style = Paint.Style.FILL
         }
-        canvas.drawRoundRect(30f, y, (pageWidth - 30).toFloat(), y + 90f, 12f, 12f, stampBg)
-        canvas.drawRoundRect(30f, y, (pageWidth - 30).toFloat(), y + 90f, 12f, 12f, borderPaint)
+        canvas.drawRoundRect(30f, y, (pageWidth - 30).toFloat(), y + 110f, 12f, 12f, stampBg)
+        canvas.drawRoundRect(30f, y, (pageWidth - 30).toFloat(), y + 110f, 12f, 12f, borderPaint)
 
         val notePaint = Paint().apply {
             color = Color.rgb(30, 58, 138)
@@ -176,9 +176,17 @@ object SampleDocumentsGenerator {
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
         }
-        canvas.drawText("✔ महाभूलेख (MahaBhulekh) डिजिटल स्वाक्षरीत नमुना उतारा", 45f, y + 30f, notePaint)
-        canvas.drawText("मोटोरोला जी ६७ पॉवर वर DocuViewer द्वारे सुरक्षित व स्पष्ट पाहिला गेला.", 45f, y + 55f, textPaint)
-        canvas.drawText("मुद्रण दिनांक: २९ ऑक्टोबर २०२६", 45f, y + 75f, textPaint)
+        canvas.drawText("✔ महाभूलेख (MahaBhulekh) डिजिटल स्वाक्षरीत नमुना उतारा", 45f, y + 28f, notePaint)
+        canvas.drawText("मोटोरोला जी ६७ पॉवर वर DocuViewer द्वारे सुरक्षित व स्पष्ट पाहिला गेला.", 45f, y + 50f, textPaint)
+        canvas.drawText("मुद्रण दिनांक: २९ ऑक्टोबर २०२६", 45f, y + 70f, textPaint)
+
+        val watermarkPaint = Paint().apply {
+            color = Color.rgb(180, 83, 9)
+            textSize = 12f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            isAntiAlias = true
+        }
+        canvas.drawText("⭐ वॉटरमार्क: मेकिंग बाय प्रदीप चव्हाण (Making by Pradeep Chavan)", 45f, y + 95f, watermarkPaint)
 
         document.finishPage(page)
         FileOutputStream(file).use { out -> document.writeTo(out) }
@@ -307,7 +315,14 @@ object SampleDocumentsGenerator {
             textSize = 11f
             isAntiAlias = true
         }
-        canvas1.drawText("पान १ / १ | DocuViewer Android Ready", 30f, pageHeight - 30f, footerPaint)
+        val watermarkPaint = Paint().apply {
+            color = Color.rgb(180, 83, 9)
+            textSize = 12f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            isAntiAlias = true
+        }
+        canvas1.drawText("⭐ वॉटरमार्क: मेकिंग बाय प्रदीप चव्हाण (Making by Pradeep Chavan)", 30f, pageHeight - 50f, watermarkPaint)
+        canvas1.drawText("पान १ / १ | DocuViewer Android Ready", 30f, pageHeight - 25f, footerPaint)
         document.finishPage(page1)
 
         FileOutputStream(file).use { out -> document.writeTo(out) }
@@ -328,6 +343,7 @@ object SampleDocumentsGenerator {
 25/10/2026,इंटरनेट वायफाय बिल,ऑफिस,499,PhonePe,यशस्वी
 28/10/2026,गाडी सर्व्हिसिंग,प्रवास,1250,रोख,यशस्वी
 30/10/2026,बचत ठेव ट्रान्सफर,बचत,5000,NetBanking,यशस्वी
+--,⭐ वॉटरमार्क: मेकिंग बाय प्रदीप चव्हाण (Making by Pradeep Chavan),--,0,Verified,--
         """.trimIndent()
 
         file.writeText(csvContent, Charsets.UTF_8)
@@ -344,6 +360,7 @@ object SampleDocumentsGenerator {
 29/10/2026,अमरावती APMC,तूर,पांढरी,310,9200,10400,9800
 29/10/2026,सोलापूर APMC,डाळिंब,भगवा,190,7500,14500,11000
 29/10/2026,बारामती APMC,गहू,शरबती,520,2600,3200,2950
+--,⭐ वॉटरमार्क: मेकिंग बाय प्रदीप चव्हाण (Making by Pradeep Chavan),--,--,0,0,0,0
         """.trimIndent()
 
         file.writeText(csvContent, Charsets.UTF_8)
