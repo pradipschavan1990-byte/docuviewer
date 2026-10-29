@@ -1,0 +1,109 @@
+package com.example.util
+
+enum class AppLanguage {
+    MARATHI,
+    ENGLISH
+}
+
+object StringsManager {
+    fun get(key: String, lang: AppLanguage): String {
+        return when (lang) {
+            AppLanguage.MARATHI -> marathiStrings[key] ?: englishStrings[key] ?: key
+            AppLanguage.ENGLISH -> englishStrings[key] ?: key
+        }
+    }
+
+    private val marathiStrings = mapOf(
+        "app_title" to "DocuViewer (दस्तऐवज व्ह्यूअर)",
+        "tagline" to "मोटोरोला व सर्व अँड्रॉइड फोनसाठी थेट व जलद पीडीएफ आणि एक्सेल व्ह्यूअर",
+        "moto_badge" to "मोटोरोला G67 पॉवर सह १००% सुसंगत",
+        "moto_badge_desc" to "अँड्रॉइड १४/१५ Scoped Storage आणि WhatsApp फाईल्स सहज उघडण्यासाठी ऑप्टिमाइझ केलेले",
+        "open_pdf" to "पीडीएफ उघडा",
+        "open_pdf_sub" to "कोणतीही PDF थेट लोड करा",
+        "open_excel" to "एक्सेल/CSV उघडा",
+        "open_excel_sub" to ".xlsx, .xls, .csv फाईल्स",
+        "try_sample_pdf" to "नमुना पीडीएफ तपासा",
+        "try_sample_excel" to "नमुना एक्सेल तपासा",
+        "recents_tab" to "अलीकडील फाईल्स",
+        "favorites_tab" to "आवडत्या",
+        "guide_tab" to "मदत व मार्गदर्शन",
+        "empty_recents" to "अजून कोणतीही फाईल उघडलेली नाही",
+        "empty_recents_sub" to "वरील बटण दाबून तुमच्या फोनमधील PDF किंवा Excel फाईल निवडा किंवा नमुना फाईल तपासून पहा.",
+        "empty_favorites" to "कोणतीही आवडती फाईल नाही",
+        "empty_favorites_sub" to "महत्त्वाच्या फाईल्स पटकन उघडण्यासाठी स्टार (★) चिन्हावर टॅप करा.",
+        "search_hint" to "दस्तऐवज शोधा...",
+        "page" to "पान",
+        "of" to "पैकी",
+        "night_mode" to "रात्र मोड",
+        "zoom_in" to "झूम वाढवा",
+        "zoom_out" to "झूम कमी करा",
+        "reset_zoom" to "पूर्ववत करा",
+        "share" to "शेअर करा",
+        "sheet" to "शीट",
+        "search_in_sheet" to "शीटमध्ये मजकूर शोधा...",
+        "rows" to "ओळी",
+        "cols" to "स्तंभ",
+        "sum" to "बेरीज",
+        "avg" to "सरासरी",
+        "count" to "संख्या",
+        "close" to "बंद करा",
+        "error_loading" to "फाईल उघडण्यात त्रुटी आली. कृपया फाईल सुरक्षित आहे का ते तपासा.",
+        "language_toggle" to "मराठी / English",
+        "file_size" to "आकार",
+        "last_opened" to "शेवटचे उघडले",
+        "direct_open_tip" to "टीप: व्हॉट्सॲप किंवा ईमेलमधील फाईलवर क्लिक केल्यावर थेट DocuViewer निवडा.",
+        "guide_q1" to "मोटोरोला जी ६७ वर इतर ॲप्समध्ये पीडीएफ का उघडत नाही?",
+        "guide_a1" to "अँड्रॉइड १४ आणि १५ मध्ये नवीन सुरक्षा प्रणाली (Scoped Storage) आहे. अनेक जुने ॲप्स थेट पाथ वापरतात आणि क्रॅश होतात. DocuViewer थेट सुरक्षित Content Stream आणि हार्डवेअर ॲक्सिलरेटेड PdfRenderer वापरतो, ज्यामुळे कोणतीही फाईल विनाअडथळा उघडते.",
+        "guide_q2" to "व्हॉट्सॲप किंवा ईमेल मधील फाईल्स थेट कशा उघडाव्यात?",
+        "guide_a2" to "१. व्हॉट्सॲप मधील कोणत्याही पीडीएफ किंवा एक्सेल फाईलवर क्लिक करा.\n२. समोर पर्याय आल्यास 'DocuViewer' निवडा.\n३. खाली 'Always / नेहमी' पर्याय निवडा.\nयानंतर प्रत्येक वेळी फाईल थेट या ॲपमध्ये सेकंदात उघडेल!",
+        "guide_q3" to "मोठ्या एक्सेल (.xlsx) फाईल्स कशा दिसतात?",
+        "guide_a3" to "DocuViewer मध्ये हाय-स्पीड XML पार्सर आहे, जो मल्टी-शीट, सर्च आणि डेटा कॅल्क्युलेशन (Sum/Avg) ला सपोर्ट करतो. तुम्ही दोन बोटांनी झूम करू शकता किंवा फॉन्ट साईझ बदलू शकता."
+    )
+
+    private val englishStrings = mapOf(
+        "app_title" to "DocuViewer",
+        "tagline" to "Direct & fast PDF, Excel and CSV document reader for Motorola & Android phones",
+        "moto_badge" to "100% Compatible with Moto G67 Power",
+        "moto_badge_desc" to "Engineered for Android 14/15 Scoped Storage and instant WhatsApp / Email opening",
+        "open_pdf" to "Open PDF",
+        "open_pdf_sub" to "Direct hardware rendering",
+        "open_excel" to "Open Excel / CSV",
+        "open_excel_sub" to ".xlsx, .xls, .csv tables",
+        "try_sample_pdf" to "Try Sample PDF",
+        "try_sample_excel" to "Try Sample Excel",
+        "recents_tab" to "Recents",
+        "favorites_tab" to "Favorites",
+        "guide_tab" to "Help & Guide",
+        "empty_recents" to "No documents opened yet",
+        "empty_recents_sub" to "Tap above to pick a PDF or Excel file from your phone, or test with the sample documents.",
+        "empty_favorites" to "No favorite documents",
+        "empty_favorites_sub" to "Star your important documents to access them quickly here.",
+        "search_hint" to "Search documents...",
+        "page" to "Page",
+        "of" to "of",
+        "night_mode" to "Night Mode",
+        "zoom_in" to "Zoom In",
+        "zoom_out" to "Zoom Out",
+        "reset_zoom" to "Reset Zoom",
+        "share" to "Share",
+        "sheet" to "Sheet",
+        "search_in_sheet" to "Search in spreadsheet...",
+        "rows" to "Rows",
+        "cols" to "Cols",
+        "sum" to "Sum",
+        "avg" to "Avg",
+        "count" to "Count",
+        "close" to "Close",
+        "error_loading" to "Unable to load document. Please check file permissions or validity.",
+        "language_toggle" to "English / मराठी",
+        "file_size" to "Size",
+        "last_opened" to "Opened",
+        "direct_open_tip" to "Tip: Tap on any PDF/Excel in WhatsApp or Downloads and choose DocuViewer -> Always.",
+        "guide_q1" to "Why do other PDF readers fail on Moto G67 Power?",
+        "guide_a1" to "Modern Motorola devices with Android 14/15 enforce strict Scoped Storage. Outdated apps try to open direct file paths which fail with security exceptions. DocuViewer streams directly via native ContentResolver and Android's native PdfRenderer with zero native crashes.",
+        "guide_q2" to "How to open files directly from WhatsApp or Gmail?",
+        "guide_a2" to "1. Tap any PDF or Excel file in WhatsApp.\n2. In the 'Open with' popup, select 'DocuViewer'.\n3. Choose 'Always'.\nNow all documents will open instantly without having to save or copy them first!",
+        "guide_q3" to "How does Excel (.xlsx) viewing work?",
+        "guide_a3" to "DocuViewer includes a built-in high-speed XML & CSV streaming engine supporting multiple sheets, text search, formula value display, and instant cell statistics (Sum, Average, Count)."
+    )
+}

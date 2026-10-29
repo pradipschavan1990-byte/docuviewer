@@ -1,0 +1,6 @@
+{
+  "name": "DocuViewer",
+  "description": "Direct PDF, Excel (XLSX), and CSV reader designed for smooth viewing on Motorola and Android devices.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
