@@ -90,7 +90,9 @@ fun DocuViewerApp(viewModel: DocViewModel) {
                 errorMessage = errorMessage,
                 onOpenDocument = { uri, mime -> viewModel.openDocument(uri, mime) },
                 onOpenSamplePdf = { viewModel.openSamplePdf() },
+                onOpenSatbaraPdf = { viewModel.openSatbaraPdf() },
                 onOpenSampleExcel = { viewModel.openSampleExcel() },
+                onOpenShetkariExcel = { viewModel.openShetkariExcel() },
                 onToggleLanguage = { viewModel.toggleLanguage() },
                 onToggleFavorite = { uri, isFav -> viewModel.toggleFavorite(uri, isFav) },
                 onDeleteRecent = { uri -> viewModel.deleteFromRecents(uri) }

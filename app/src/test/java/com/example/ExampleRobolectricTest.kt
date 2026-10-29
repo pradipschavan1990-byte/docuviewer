@@ -29,5 +29,14 @@ class ExampleRobolectricTest {
     assertEquals(3, data.sheets[0].rows.size)
     assertEquals("Recharge", data.sheets[0].rows[1][0])
     assertEquals("299", data.sheets[0].rows[1][1])
+  @Test
+  fun `test marathi csv engine parsing`() {
+    val csv = "तारीख,तपशील,रक्कम\n०१/१०/२०२६,सोयाबीन,४५००\n०२/१०/२०२६,कांदा,२१००".toByteArray(Charsets.UTF_8)
+    val data = ExcelEngine.parseCsv("मराठी_चाचणी.csv", csv)
+    assertEquals(1, data.sheets.size)
+    assertEquals(3, data.sheets[0].rows.size)
+    assertEquals("तारीख", data.sheets[0].rows[0][0])
+    assertEquals("सोयाबीन", data.sheets[0].rows[1][1])
+    assertEquals("२१००", data.sheets[0].rows[2][2])
   }
 }

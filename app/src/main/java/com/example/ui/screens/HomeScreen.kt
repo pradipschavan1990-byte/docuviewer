@@ -90,7 +90,9 @@ fun HomeScreen(
     errorMessage: String?,
     onOpenDocument: (Uri, String?) -> Unit,
     onOpenSamplePdf: () -> Unit,
+    onOpenSatbaraPdf: () -> Unit,
     onOpenSampleExcel: () -> Unit,
+    onOpenShetkariExcel: () -> Unit,
     onToggleLanguage: () -> Unit,
     onToggleFavorite: (String, Boolean) -> Unit,
     onDeleteRecent: (String) -> Unit
@@ -375,7 +377,7 @@ fun HomeScreen(
                 }
             }
 
-            // Quick Sample Testers Card (To test immediately without looking for files!)
+            // Quick Marathi Documents Section
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -383,19 +385,77 @@ fun HomeScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "नमुना दस्तऐवज चाचणी (Instant Test)",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "🇮🇳 मराठी दस्तऐवज (Marathi Documents)",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "तुमच्या मोटोरोला फोनवर थेट उघडून पाहण्यासाठी खालील बटण दाबा:",
+                            text = "मराठीतील अधिकृत PDF व Excel फाईल्स थेट वाचून पाहण्यासाठी खालीलपैकी निवडा:",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // Row 1: 7/12 Land Record PDF + APMC Farming Excel
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = onOpenSatbaraPdf,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("btn_satbara_pdf"),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = PdfRed)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Description,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "७/१२ सातबारा (PDF)",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1
+                                )
+                            }
+
+                            Button(
+                                onClick = onOpenShetkariExcel,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("btn_shetkari_excel"),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ExcelGreen)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.TableChart,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "कृषी बाजारभाव (Excel)",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Row 2: Moto G67 Test PDF + Household Expense CSV
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -411,12 +471,12 @@ fun HomeScreen(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = null,
                                     tint = PdfRed,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(14.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = StringsManager.get("try_sample_pdf", language),
-                                    fontSize = 12.sp,
+                                    text = "मोटोरोला टेस्ट PDF",
+                                    fontSize = 11.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -433,12 +493,12 @@ fun HomeScreen(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = null,
                                     tint = ExcelGreen,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(14.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = StringsManager.get("try_sample_excel", language),
-                                    fontSize = 12.sp,
+                                    text = "घरगुती खर्च पत्रक",
+                                    fontSize = 11.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )

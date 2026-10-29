@@ -158,10 +158,26 @@ class DocViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun openSatbaraPdf() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val uri = SampleDocumentsGenerator.getOrCreateSatbaraPdf(getApplication())
+            openDocument(uri, "application/pdf")
+        }
+    }
+
     fun openSampleExcel() {
         viewModelScope.launch {
             _isLoading.value = true
             val uri = SampleDocumentsGenerator.getOrCreateSampleExcel(getApplication())
+            openDocument(uri, "text/csv")
+        }
+    }
+
+    fun openShetkariExcel() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val uri = SampleDocumentsGenerator.getOrCreateShetkariExcel(getApplication())
             openDocument(uri, "text/csv")
         }
     }

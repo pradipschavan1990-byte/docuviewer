@@ -44,7 +44,16 @@ object ExcelEngine {
     }
 
     fun parseCsv(fileName: String, bytes: ByteArray): SpreadsheetData {
-        val reader = BufferedReader(InputStreamReader(ByteArrayInputStream(bytes)))
+        val cleanBytes = if (bytes.size >= 3 &&
+            bytes[0] == 0xEF.toByte() &&
+            bytes[1] == 0xBB.toByte() &&
+            bytes[2] == 0xBF.toByte()
+        ) {
+            bytes.copyOfRange(3, bytes.size)
+        } else {
+            bytes
+        }
+        val reader = BufferedReader(InputStreamReader(ByteArrayInputStream(cleanBytes), java.nio.charset.StandardCharsets.UTF_8))
         val rows = mutableListOf<List<String>>()
         var maxCols = 0
 
