@@ -53,21 +53,62 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent == null) return
-        val action = intent.action
-        val type = intent.type
+        val uri = extractUri(intent) ?: return
 
-        val uri: Uri? = when (action) {
-            Intent.ACTION_VIEW -> intent.data
-            Intent.ACTION_SEND -> {
+        // Take persistable permission if granted, ignore if not supported by provider (e.g. WhatsApp/Gmail)
+        try {
+            if ((intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+        } catch (_: Exception) {
+            // Transient permission from WhatsApp or Gmail; fine as we copy stream directly
+        }
+
+        val resolvedMime = intent.type ?: try {
+            contentResolver.getType(uri)
+        } catch (_: Exception) {
+            null
+        }
+
+        viewModel.openDocument(uri, resolvedMime)
+    }
+
+    private fun extractUri(intent: Intent): Uri? {
+        // 1. Direct data URI (ACTION_VIEW from Files, Chrome downloads, etc.)
+        intent.data?.let { return it }
+
+        // 2. EXTRA_STREAM from ACTION_SEND (WhatsApp, Gmail, Telegram "Share")
+        if (intent.action == Intent.ACTION_SEND) {
+            val streamUri = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+            } else {
                 @Suppress("DEPRECATION")
                 intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
             }
-            else -> intent.data
+            if (streamUri != null) return streamUri
         }
 
-        if (uri != null) {
-            viewModel.openDocument(uri, type)
+        // 3. EXTRA_STREAM from ACTION_SEND_MULTIPLE
+        if (intent.action == Intent.ACTION_SEND_MULTIPLE) {
+            val list = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
+            }
+            list?.firstOrNull()?.let { return it }
         }
+
+        // 4. ClipData fallback (used by WhatsApp, Gmail, and various share sheets)
+        val clipData = intent.clipData
+        if (clipData != null && clipData.itemCount > 0) {
+            clipData.getItemAt(0)?.uri?.let { return it }
+        }
+
+        return null
     }
 }
 

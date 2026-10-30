@@ -36,14 +36,22 @@ class PdfEngine(private val context: Context) {
         runCatching {
             close()
 
-            // Resolve file name and size
-            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-                if (cursor.moveToFirst()) {
-                    if (nameIndex != -1) fileName = cursor.getString(nameIndex) ?: "document.pdf"
-                    if (sizeIndex != -1) fileSize = cursor.getLong(sizeIndex)
+            // Resolve file name and size safely
+            try {
+                context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                    if (cursor.moveToFirst()) {
+                        if (nameIndex != -1) {
+                            cursor.getString(nameIndex)?.let { fileName = it }
+                        }
+                        if (sizeIndex != -1) fileSize = cursor.getLong(sizeIndex)
+                    }
                 }
+            } catch (_: Exception) {}
+
+            if (!fileName.endsWith(".pdf", ignoreCase = true)) {
+                fileName = "$fileName.pdf"
             }
 
             // Safe stream copying: Resolves Scoped Storage & WhatsApp/Gmail content stream issues

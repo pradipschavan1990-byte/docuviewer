@@ -13,6 +13,7 @@ import com.example.engine.SampleDocumentsGenerator
 import com.example.model.DocType
 import com.example.model.SpreadsheetData
 import com.example.util.AppLanguage
+import android.provider.OpenableColumns
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -85,35 +86,43 @@ class DocViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             _errorMessage.value = null
 
-            val type = DocType.fromFileNameOrMime(uri.lastPathSegment, mimeType)
+            val context = getApplication<Application>()
+            var resolvedName: String = uri.lastPathSegment ?: "document"
 
-            if (type == DocType.PDF) {
-                val openResult = pdfEngine.open(uri)
-                if (openResult.isSuccess) {
-                    val count = openResult.getOrThrow()
-                    _pdfPageCount.value = count
-                    _currentPdfPage.value = 0
-                    loadPdfPage(0)
-
-                    _currentScreen.value = Screen.PdfViewer(uri, pdfEngine.fileName)
-
-                    // Record to Recents
-                    dao.insertOrUpdate(
-                        RecentDocumentEntity(
-                            uriString = uri.toString(),
-                            fileName = pdfEngine.fileName,
-                            fileType = "PDF",
-                            fileSize = pdfEngine.fileSize,
-                            lastOpenedTimestamp = System.currentTimeMillis(),
-                            totalCount = count
-                        )
-                    )
-                } else {
-                    _errorMessage.value = openResult.exceptionOrNull()?.message ?: "Failed to open PDF"
+            // 1. Resolve true file name from ContentResolver
+            try {
+                context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (cursor.moveToFirst() && nameIndex != -1) {
+                        cursor.getString(nameIndex)?.let { resolvedName = it }
+                    }
                 }
-            } else {
-                // Try Spreadsheet (Excel/CSV)
-                val parseResult = ExcelEngine.parse(getApplication(), uri)
+            } catch (_: Exception) {}
+
+            // 2. Peek magic header bytes (first 64 bytes)
+            val headerBytes = ByteArray(64)
+            var bytesRead = 0
+            try {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    bytesRead = stream.read(headerBytes)
+                }
+            } catch (_: Exception) {}
+
+            val effectiveMime = mimeType?.takeIf { it.isNotBlank() && it != "*/*" && it != "application/octet-stream" }
+                ?: try { context.contentResolver.getType(uri) } catch (_: Exception) { null }
+
+            val detectedType = DocType.detectType(
+                name = resolvedName,
+                mime = effectiveMime,
+                headerBytes = if (bytesRead >= 4) headerBytes.copyOf(bytesRead) else null
+            )
+
+            // 3. If detected as PDF (by %PDF magic bytes, .pdf name or mime) -> Open as PDF!
+            if (detectedType == DocType.PDF) {
+                openAsPdf(uri)
+            } else if (detectedType == DocType.EXCEL || detectedType == DocType.CSV) {
+                // If detected as spreadsheet -> Parse spreadsheet, fallback to PDF if parse fails
+                val parseResult = ExcelEngine.parse(context, uri)
                 if (parseResult.isSuccess) {
                     val data = parseResult.getOrThrow()
                     _spreadsheetData.value = data
@@ -133,20 +142,68 @@ class DocViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     )
                 } else {
-                    // Try PDF fallback in case extension was missing
-                    val fallbackPdf = pdfEngine.open(uri)
-                    if (fallbackPdf.isSuccess) {
-                        val count = fallbackPdf.getOrThrow()
-                        _pdfPageCount.value = count
-                        _currentPdfPage.value = 0
-                        loadPdfPage(0)
-                        _currentScreen.value = Screen.PdfViewer(uri, pdfEngine.fileName)
+                    // Fallback to PDF
+                    openAsPdf(uri)
+                }
+            } else {
+                // UNKNOWN: First try PDF engine (safe and strictly validated by PdfRenderer)
+                val openResult = pdfEngine.open(uri)
+                if (openResult.isSuccess) {
+                    val count = openResult.getOrThrow()
+                    _pdfPageCount.value = count
+                    _currentPdfPage.value = 0
+                    loadPdfPage(0)
+                    _currentScreen.value = Screen.PdfViewer(uri, pdfEngine.fileName)
+                    dao.insertOrUpdate(
+                        RecentDocumentEntity(
+                            uriString = uri.toString(),
+                            fileName = pdfEngine.fileName,
+                            fileType = "PDF",
+                            fileSize = pdfEngine.fileSize,
+                            lastOpenedTimestamp = System.currentTimeMillis(),
+                            totalCount = count
+                        )
+                    )
+                } else {
+                    // Try spreadsheet as last resort
+                    val parseResult = ExcelEngine.parse(context, uri)
+                    if (parseResult.isSuccess) {
+                        val data = parseResult.getOrThrow()
+                        _spreadsheetData.value = data
+                        _selectedSheetIndex.value = 0
+                        _sheetSearchQuery.value = ""
+                        _selectedCells.value = emptySet()
+                        _currentScreen.value = Screen.SpreadsheetViewer(uri, data.fileName)
                     } else {
-                        _errorMessage.value = parseResult.exceptionOrNull()?.message ?: "Failed to open document"
+                        _errorMessage.value = "फाईल उघडता आली नाही. कृपया फाईल वैध आहे का ते तपासा."
                     }
                 }
             }
             _isLoading.value = false
+        }
+    }
+
+    private suspend fun openAsPdf(uri: Uri) {
+        val openResult = pdfEngine.open(uri)
+        if (openResult.isSuccess) {
+            val count = openResult.getOrThrow()
+            _pdfPageCount.value = count
+            _currentPdfPage.value = 0
+            loadPdfPage(0)
+            _currentScreen.value = Screen.PdfViewer(uri, pdfEngine.fileName)
+
+            dao.insertOrUpdate(
+                RecentDocumentEntity(
+                    uriString = uri.toString(),
+                    fileName = pdfEngine.fileName,
+                    fileType = "PDF",
+                    fileSize = pdfEngine.fileSize,
+                    lastOpenedTimestamp = System.currentTimeMillis(),
+                    totalCount = count
+                )
+            )
+        } else {
+            _errorMessage.value = openResult.exceptionOrNull()?.message ?: "PDF उघडता आले नाही."
         }
     }
 

@@ -180,13 +180,12 @@ object SampleDocumentsGenerator {
         canvas.drawText("मोटोरोला जी ६७ पॉवर वर DocuViewer द्वारे सुरक्षित व स्पष्ट पाहिला गेला.", 45f, y + 50f, textPaint)
         canvas.drawText("मुद्रण दिनांक: २९ ऑक्टोबर २०२६", 45f, y + 70f, textPaint)
 
-        val watermarkPaint = Paint().apply {
-            color = Color.rgb(180, 83, 9)
-            textSize = 12f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        val tinyWatermarkPaint = Paint().apply {
+            color = Color.rgb(148, 163, 184)
+            textSize = 9f
             isAntiAlias = true
         }
-        canvas.drawText("⭐ वॉटरमार्क: मेकिंग बाय प्रदीप चव्हाण (Making by Pradeep Chavan)", 45f, y + 95f, watermarkPaint)
+        canvas.drawText("Making by Pradeep Chavan", (pageWidth - 140).toFloat(), pageHeight - 15f, tinyWatermarkPaint)
 
         document.finishPage(page)
         FileOutputStream(file).use { out -> document.writeTo(out) }
@@ -310,19 +309,13 @@ object SampleDocumentsGenerator {
         canvas1.drawText("एकूण देय रक्कम (Total):", 80f, y + 20f, boldPaint)
         canvas1.drawText("₹ 3,047.00", 440f, y + 20f, boldPaint)
 
-        val footerPaint = Paint().apply {
-            color = Color.rgb(100, 116, 139)
-            textSize = 11f
+        val tinyWatermarkPaint = Paint().apply {
+            color = Color.rgb(148, 163, 184)
+            textSize = 9f
             isAntiAlias = true
         }
-        val watermarkPaint = Paint().apply {
-            color = Color.rgb(180, 83, 9)
-            textSize = 12f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            isAntiAlias = true
-        }
-        canvas1.drawText("⭐ वॉटरमार्क: मेकिंग बाय प्रदीप चव्हाण (Making by Pradeep Chavan)", 30f, pageHeight - 50f, watermarkPaint)
-        canvas1.drawText("पान १ / १ | DocuViewer Android Ready", 30f, pageHeight - 25f, footerPaint)
+        canvas1.drawText("पान १ / १ | DocuViewer Android Ready", 30f, pageHeight - 20f, tinyWatermarkPaint)
+        canvas1.drawText("Making by Pradeep Chavan", (pageWidth - 140).toFloat(), pageHeight - 20f, tinyWatermarkPaint)
         document.finishPage(page1)
 
         FileOutputStream(file).use { out -> document.writeTo(out) }
@@ -343,7 +336,6 @@ object SampleDocumentsGenerator {
 25/10/2026,इंटरनेट वायफाय बिल,ऑफिस,499,PhonePe,यशस्वी
 28/10/2026,गाडी सर्व्हिसिंग,प्रवास,1250,रोख,यशस्वी
 30/10/2026,बचत ठेव ट्रान्सफर,बचत,5000,NetBanking,यशस्वी
---,⭐ वॉटरमार्क: मेकिंग बाय प्रदीप चव्हाण (Making by Pradeep Chavan),--,0,Verified,--
         """.trimIndent()
 
         file.writeText(csvContent, Charsets.UTF_8)
@@ -360,7 +352,6 @@ object SampleDocumentsGenerator {
 29/10/2026,अमरावती APMC,तूर,पांढरी,310,9200,10400,9800
 29/10/2026,सोलापूर APMC,डाळिंब,भगवा,190,7500,14500,11000
 29/10/2026,बारामती APMC,गहू,शरबती,520,2600,3200,2950
---,⭐ वॉटरमार्क: मेकिंग बाय प्रदीप चव्हाण (Making by Pradeep Chavan),--,--,0,0,0,0
         """.trimIndent()
 
         file.writeText(csvContent, Charsets.UTF_8)

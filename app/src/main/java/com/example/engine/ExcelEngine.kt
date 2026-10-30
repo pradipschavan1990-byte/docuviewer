@@ -21,18 +21,30 @@ object ExcelEngine {
     suspend fun parse(context: Context, uri: Uri): Result<SpreadsheetData> = withContext(Dispatchers.IO) {
         runCatching {
             var fileName = "spreadsheet"
-            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (cursor.moveToFirst() && nameIndex != -1) {
-                    fileName = cursor.getString(nameIndex) ?: "spreadsheet"
+            try {
+                context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (cursor.moveToFirst() && nameIndex != -1) {
+                        cursor.getString(nameIndex)?.let { fileName = it }
+                    }
                 }
-            }
+            } catch (_: Exception) {}
 
             val lower = fileName.lowercase()
             val inputStream = context.contentResolver.openInputStream(uri)
                 ?: throw IllegalStateException("Cannot open input stream for: $uri")
 
             val bytes = inputStream.use { it.readBytes() }
+
+            // Guard: If this is a PDF file, do NOT parse as CSV!
+            if (bytes.size >= 4 &&
+                bytes[0] == 0x25.toByte() &&
+                bytes[1] == 0x50.toByte() &&
+                bytes[2] == 0x44.toByte() &&
+                bytes[3] == 0x46.toByte()
+            ) {
+                throw IllegalArgumentException("This is a PDF document, not a spreadsheet!")
+            }
 
             if (lower.endsWith(".xlsx")) {
                 parseXlsx(fileName, bytes)

@@ -16,35 +16,42 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.MyApplication"
+            android:launchMode="singleTask"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Support opening PDFs directly from Files, WhatsApp, Downloads, Gmail -->
+            <!-- 1. PDF MIME types from WhatsApp, Gmail, Chrome, Files, Telegram -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:mimeType="application/pdf" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="application/x-pdf" />
+                <data android:mimeType="application/vnd.pdf" />
+                <data android:mimeType="text/pdf" />
+            </intent-filter>
 
-            <!-- Support opening Excel spreadsheets (XLSX, XLS) -->
+            <!-- 2. Excel & Spreadsheet MIME types (XLSX, XLS) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:mimeType="application/vnd.ms-excel" />
+                <data android:mimeType="application/x-excel" />
+                <data android:mimeType="application/excel" />
+                <data android:mimeType="application/x-msexcel" />
             </intent-filter>
 
-            <!-- Support opening CSV files -->
+            <!-- 3. CSV & Delimited / Plain Text MIME types -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -52,25 +59,91 @@
                 <data android:mimeType="text/csv" />
                 <data android:mimeType="text/comma-separated-values" />
                 <data android:mimeType="application/csv" />
+                <data android:mimeType="text/tab-separated-values" />
+                <data android:mimeType="text/plain" />
             </intent-filter>
 
-            <!-- Fallback by file extension path pattern for content & file schemes -->
+            <!-- 4. Content scheme with file extensions (pathSuffix & pathPattern) for WhatsApp & Email -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
-                <data android:scheme="file" />
+                <data android:pathSuffix=".pdf" />
+                <data android:pathSuffix=".PDF" />
+                <data android:pathSuffix=".xlsx" />
+                <data android:pathSuffix=".XLSX" />
+                <data android:pathSuffix=".xls" />
+                <data android:pathSuffix=".XLS" />
+                <data android:pathSuffix=".csv" />
+                <data android:pathSuffix=".CSV" />
+                <data android:pathSuffix=".txt" />
+                <data android:pathSuffix=".TXT" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
                 <data android:mimeType="*/*" />
                 <data android:pathPattern=".*\\.pdf" />
+                <data android:pathPattern=".*\\.PDF" />
                 <data android:pathPattern=".*\\.xlsx" />
                 <data android:pathPattern=".*\\.xls" />
                 <data android:pathPattern=".*\\.csv" />
             </intent-filter>
 
-            <!-- Support Send / Share target -->
+            <!-- 5. File scheme with file extensions -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:pathSuffix=".pdf" />
+                <data android:pathSuffix=".PDF" />
+                <data android:pathSuffix=".xlsx" />
+                <data android:pathSuffix=".XLSX" />
+                <data android:pathSuffix=".xls" />
+                <data android:pathSuffix=".XLS" />
+                <data android:pathSuffix=".csv" />
+                <data android:pathSuffix=".CSV" />
+                <data android:pathSuffix=".txt" />
+                <data android:pathSuffix=".TXT" />
+            </intent-filter>
+
+            <!-- 6. Generic application/octet-stream fallback for email and browser downloads -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:pathPattern=".*\\.pdf" />
+                <data android:pathPattern=".*\\.PDF" />
+                <data android:pathPattern=".*\\.xlsx" />
+                <data android:pathPattern=".*\\.xls" />
+                <data android:pathPattern=".*\\.csv" />
+            </intent-filter>
+
+            <!-- 7. Support Share / Send target (WhatsApp 'Share to DocuViewer', Gmail 'Share', etc.) -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="application/x-pdf" />
+                <data android:mimeType="application/vnd.pdf" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                <data android:mimeType="application/vnd.ms-excel" />
+                <data android:mimeType="text/csv" />
+                <data android:mimeType="text/comma-separated-values" />
+                <data android:mimeType="application/csv" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/pdf" />
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />

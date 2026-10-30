@@ -300,21 +300,15 @@ fun PdfViewerScreen(
                         )
                 )
 
-                // Watermark: Making by Pradeep Chavan
-                Surface(
+                // Tiny Watermark in bottom corner only
+                Text(
+                    text = "Making by Pradeep Chavan",
+                    fontSize = 8.sp,
+                    color = (if (isNightMode) Color.White else Color.Black).copy(alpha = 0.35f),
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(16.dp),
-                    color = Color.Black.copy(alpha = 0.55f),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        text = "मेकिंग बाय: प्रदीप चव्हाण",
-                        color = Color.White.copy(alpha = 0.95f),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
-                    )
-                }
+                        .padding(end = 8.dp, bottom = 4.dp)
+                )
             } else {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
