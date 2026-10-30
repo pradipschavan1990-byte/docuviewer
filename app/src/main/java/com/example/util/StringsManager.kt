@@ -60,7 +60,11 @@ object StringsManager {
         "guide_a3" to "DocuViewer मध्ये हाय-स्पीड XML पार्सर आहे, जो मल्टी-शीट, सर्च आणि डेटा कॅल्क्युलेशन (Sum/Avg) ला सपोर्ट करतो. तुम्ही दोन बोटांनी झूम करू शकता किंवा फॉन्ट साईझ बदलू शकता.",
         "watermark_text" to "निर्मिती: प्रदीप चव्हाण (Making by Pradeep Chavan)",
         "watermark_short" to "Making by Pradeep Chavan",
-        "creator_label" to "संकल्पना व निर्मिती: प्रदीप चव्हाण"
+        "creator_label" to "संकल्पना व निर्मिती: प्रदीप चव्हाण",
+        "screenshot_mode" to "स्क्रीनशॉट मोड",
+        "exit_screenshot_mode" to "सामान्य दृश्य",
+        "fit_columns" to "स्क्रीनमध्ये बसवा",
+        "zoom_level" to "झूम"
     )
 
     private val englishStrings = mapOf(
@@ -110,6 +114,10 @@ object StringsManager {
         "guide_a3" to "DocuViewer includes a built-in high-speed XML & CSV streaming engine supporting multiple sheets, text search, formula value display, and instant cell statistics (Sum, Average, Count).",
         "watermark_text" to "Made by Pradeep Chavan (निर्मिती: प्रदीप चव्हाण)",
         "watermark_short" to "Making by Pradeep Chavan",
-        "creator_label" to "Concept & Creation: Pradeep Chavan"
+        "creator_label" to "Concept & Creation: Pradeep Chavan",
+        "screenshot_mode" to "Screenshot Mode",
+        "exit_screenshot_mode" to "Normal View",
+        "fit_columns" to "Fit Columns",
+        "zoom_level" to "Zoom"
     )
 }
