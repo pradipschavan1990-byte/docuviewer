@@ -25,11 +25,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -94,6 +96,8 @@ fun HomeScreen(
     onOpenSampleExcel: () -> Unit,
     onOpenShetkariExcel: () -> Unit,
     onToggleLanguage: () -> Unit,
+    isDarkMode: Boolean = false,
+    onToggleDarkMode: () -> Unit = {},
     onToggleFavorite: (String, Boolean) -> Unit,
     onDeleteRecent: (String) -> Unit
 ) {
@@ -128,6 +132,18 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    // Global Theme Toggle (Light / Dark mode)
+                    IconButton(
+                        onClick = onToggleDarkMode,
+                        modifier = Modifier.testTag("global_theme_toggle")
+                    ) {
+                        Icon(
+                            imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = StringsManager.get("theme_toggle", language),
+                            tint = if (isDarkMode) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
                     // Language Switcher Button
                     Button(
                         onClick = onToggleLanguage,

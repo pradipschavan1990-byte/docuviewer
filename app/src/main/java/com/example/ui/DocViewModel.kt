@@ -51,6 +51,11 @@ class DocViewModel(application: Application) : AndroidViewModel(application) {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    private val prefs = application.getSharedPreferences("docuviewer_prefs", android.content.Context.MODE_PRIVATE)
+
+    private val _isDarkMode = MutableStateFlow(prefs.getBoolean("dark_mode", false))
+    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
+
     // PDF state
     private val _pdfPageCount = MutableStateFlow(0)
     val pdfPageCount: StateFlow<Int> = _pdfPageCount.asStateFlow()
@@ -61,8 +66,21 @@ class DocViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentPdfBitmap = MutableStateFlow<Bitmap?>(null)
     val currentPdfBitmap: StateFlow<Bitmap?> = _currentPdfBitmap.asStateFlow()
 
-    private val _pdfNightMode = MutableStateFlow(false)
+    private val _pdfNightMode = MutableStateFlow(prefs.getBoolean("dark_mode", false))
     val pdfNightMode: StateFlow<Boolean> = _pdfNightMode.asStateFlow()
+
+    // PDF Search State
+    private val _pdfSearchQuery = MutableStateFlow("")
+    val pdfSearchQuery: StateFlow<String> = _pdfSearchQuery.asStateFlow()
+
+    private val _pdfMatches = MutableStateFlow<List<com.example.engine.PdfMatch>>(emptyList())
+    val pdfMatches: StateFlow<List<com.example.engine.PdfMatch>> = _pdfMatches.asStateFlow()
+
+    private val _currentPdfMatchIndex = MutableStateFlow(0)
+    val currentPdfMatchIndex: StateFlow<Int> = _currentPdfMatchIndex.asStateFlow()
+
+    private val _isPdfSearching = MutableStateFlow(false)
+    val isPdfSearching: StateFlow<Boolean> = _isPdfSearching.asStateFlow()
 
     // Spreadsheet state
     private val _spreadsheetData = MutableStateFlow<SpreadsheetData?>(null)
@@ -241,10 +259,77 @@ class DocViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadPdfPage(index: Int) {
         viewModelScope.launch {
-            val bitmap = pdfEngine.renderPage(index, 1080, _pdfNightMode.value)
+            val matchingPage = _pdfMatches.value.find { it.pageIndex == index }
+            val bitmap = pdfEngine.renderPage(
+                pageIndex = index,
+                targetWidth = 1080,
+                nightMode = _pdfNightMode.value,
+                highlightBounds = matchingPage?.bounds
+            )
             _currentPdfBitmap.value = bitmap
             _currentPdfPage.value = index
         }
+    }
+
+    fun setPdfSearchQuery(query: String) {
+        _pdfSearchQuery.value = query
+        val trimmed = query.trim()
+        if (trimmed.isEmpty()) {
+            _pdfMatches.value = emptyList()
+            _currentPdfMatchIndex.value = 0
+            _isPdfSearching.value = false
+            loadPdfPage(_currentPdfPage.value)
+            return
+        }
+
+        viewModelScope.launch {
+            _isPdfSearching.value = true
+            val matches = pdfEngine.search(trimmed)
+            _pdfMatches.value = matches
+            _isPdfSearching.value = false
+
+            if (matches.isNotEmpty()) {
+                // If current page is already one of the matches, focus it; else jump to first match
+                val existingMatchIndex = matches.indexOfFirst { it.pageIndex == _currentPdfPage.value }
+                if (existingMatchIndex >= 0) {
+                    _currentPdfMatchIndex.value = existingMatchIndex
+                    loadPdfPage(_currentPdfPage.value)
+                } else {
+                    _currentPdfMatchIndex.value = 0
+                    val firstPage = matches[0].pageIndex
+                    loadPdfPage(firstPage)
+                }
+            } else {
+                _currentPdfMatchIndex.value = 0
+                loadPdfPage(_currentPdfPage.value)
+            }
+        }
+    }
+
+    fun nextPdfMatch() {
+        val matches = _pdfMatches.value
+        if (matches.isEmpty()) return
+        val nextIdx = (_currentPdfMatchIndex.value + 1) % matches.size
+        _currentPdfMatchIndex.value = nextIdx
+        val targetPage = matches[nextIdx].pageIndex
+        loadPdfPage(targetPage)
+    }
+
+    fun prevPdfMatch() {
+        val matches = _pdfMatches.value
+        if (matches.isEmpty()) return
+        val prevIdx = if (_currentPdfMatchIndex.value <= 0) matches.size - 1 else _currentPdfMatchIndex.value - 1
+        _currentPdfMatchIndex.value = prevIdx
+        val targetPage = matches[prevIdx].pageIndex
+        loadPdfPage(targetPage)
+    }
+
+    fun clearPdfSearch() {
+        _pdfSearchQuery.value = ""
+        _pdfMatches.value = emptyList()
+        _currentPdfMatchIndex.value = 0
+        _isPdfSearching.value = false
+        loadPdfPage(_currentPdfPage.value)
     }
 
     fun nextPdfPage() {
@@ -265,9 +350,18 @@ class DocViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun toggleDarkMode() {
+        val next = !_isDarkMode.value
+        _isDarkMode.value = next
+        prefs.edit().putBoolean("dark_mode", next).apply()
+        _pdfNightMode.value = next
+        if (_currentScreen.value is Screen.PdfViewer) {
+            loadPdfPage(_currentPdfPage.value)
+        }
+    }
+
     fun toggleNightMode() {
-        _pdfNightMode.value = !_pdfNightMode.value
-        loadPdfPage(_currentPdfPage.value)
+        toggleDarkMode()
     }
 
     fun selectSheet(index: Int) {
@@ -317,6 +411,12 @@ class DocViewModel(application: Application) : AndroidViewModel(application) {
         _currentPdfBitmap.value = null
         _spreadsheetData.value = null
         _errorMessage.value = null
+        _pdfSearchQuery.value = ""
+        _pdfMatches.value = emptyList()
+        _currentPdfMatchIndex.value = 0
+        _isPdfSearching.value = false
+        _sheetSearchQuery.value = ""
+        _selectedCells.value = emptySet()
         _currentScreen.value = Screen.Home
     }
 

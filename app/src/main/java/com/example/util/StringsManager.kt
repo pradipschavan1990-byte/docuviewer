@@ -64,7 +64,26 @@ object StringsManager {
         "screenshot_mode" to "स्क्रीनशॉट मोड",
         "exit_screenshot_mode" to "सामान्य दृश्य",
         "fit_columns" to "स्क्रीनमध्ये बसवा",
-        "zoom_level" to "झूम"
+        "zoom_level" to "झूम",
+        "dark_mode" to "रात्र मोड",
+        "light_mode" to "दिवस मोड",
+        "theme_toggle" to "थीम बदला",
+        "zoom_slider" to "झूम स्लायडर",
+        "slide_to_zoom" to "झूम स्लाईड बार",
+        "two_finger_zoom_hint" to "दोन बोटांनी झूम करा व वर-खाली स्लाईड करा",
+        "scroll_to_top" to "वर जा",
+        "scroll_to_bottom" to "खाली जा",
+        "row_indicator" to "ओळ",
+        "search_in_pdf" to "पीडीएफ मध्ये शोधा...",
+        "search_matches_count" to "%1\$d / %2\$d",
+        "matches_found" to "%1\$d सामने सापडले",
+        "no_matches_found" to "कोणताही सामना सापडला नाही",
+        "prev_match" to "मागील सामना",
+        "next_match" to "पुढील सामना",
+        "clear_search" to "शोध पुसा",
+        "search_label" to "मजकूर शोधा",
+        "match_on_page" to "पान %1\$d वर",
+        "current_match_indicator" to "सामना %1\$d पैकी %2\$d"
     )
 
     private val englishStrings = mapOf(
@@ -118,6 +137,25 @@ object StringsManager {
         "screenshot_mode" to "Screenshot Mode",
         "exit_screenshot_mode" to "Normal View",
         "fit_columns" to "Fit Columns",
-        "zoom_level" to "Zoom"
+        "zoom_level" to "Zoom",
+        "dark_mode" to "Dark Mode",
+        "light_mode" to "Light Mode",
+        "theme_toggle" to "Switch Theme",
+        "zoom_slider" to "Zoom Slider",
+        "slide_to_zoom" to "Zoom Slide Bar",
+        "two_finger_zoom_hint" to "Pinch with 2 fingers to zoom, slide with 1 finger to scroll",
+        "scroll_to_top" to "Scroll to Top",
+        "scroll_to_bottom" to "Scroll to Bottom",
+        "row_indicator" to "Row",
+        "search_in_pdf" to "Search in PDF...",
+        "search_matches_count" to "%1\$d of %2\$d",
+        "matches_found" to "%1\$d matches found",
+        "no_matches_found" to "No matches found",
+        "prev_match" to "Previous match",
+        "next_match" to "Next match",
+        "clear_search" to "Clear search",
+        "search_label" to "Search",
+        "match_on_page" to "On page %1\$d",
+        "current_match_indicator" to "Match %1\$d of %2\$d"
     )
 }

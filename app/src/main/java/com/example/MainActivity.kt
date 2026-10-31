@@ -34,7 +34,8 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
 
         setContent {
-            MyApplicationTheme {
+            val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
+            MyApplicationTheme(darkTheme = isDarkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -121,6 +122,8 @@ fun DocuViewerApp(viewModel: DocViewModel) {
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
 
+    val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
+
     when (val screen = currentScreen) {
         is Screen.Home -> {
             HomeScreen(
@@ -135,6 +138,8 @@ fun DocuViewerApp(viewModel: DocViewModel) {
                 onOpenSampleExcel = { viewModel.openSampleExcel() },
                 onOpenShetkariExcel = { viewModel.openShetkariExcel() },
                 onToggleLanguage = { viewModel.toggleLanguage() },
+                isDarkMode = isDarkMode,
+                onToggleDarkMode = { viewModel.toggleDarkMode() },
                 onToggleFavorite = { uri, isFav -> viewModel.toggleFavorite(uri, isFav) },
                 onDeleteRecent = { uri -> viewModel.deleteFromRecents(uri) }
             )
@@ -144,6 +149,10 @@ fun DocuViewerApp(viewModel: DocViewModel) {
             val currentPage by viewModel.currentPdfPage.collectAsStateWithLifecycle()
             val bitmap by viewModel.currentPdfBitmap.collectAsStateWithLifecycle()
             val isNightMode by viewModel.pdfNightMode.collectAsStateWithLifecycle()
+            val pdfSearchQuery by viewModel.pdfSearchQuery.collectAsStateWithLifecycle()
+            val pdfMatches by viewModel.pdfMatches.collectAsStateWithLifecycle()
+            val currentPdfMatchIndex by viewModel.currentPdfMatchIndex.collectAsStateWithLifecycle()
+            val isPdfSearching by viewModel.isPdfSearching.collectAsStateWithLifecycle()
 
             PdfViewerScreen(
                 title = screen.title,
@@ -153,6 +162,15 @@ fun DocuViewerApp(viewModel: DocViewModel) {
                 currentPage = currentPage,
                 bitmap = bitmap,
                 isNightMode = isNightMode,
+                searchQuery = pdfSearchQuery,
+                searchResultsCount = pdfMatches.size,
+                currentMatchIndex = currentPdfMatchIndex,
+                isSearching = isPdfSearching,
+                matchingPages = pdfMatches.map { it.pageIndex },
+                onSearchQueryChange = { viewModel.setPdfSearchQuery(it) },
+                onNextMatch = { viewModel.nextPdfMatch() },
+                onPrevMatch = { viewModel.prevPdfMatch() },
+                onClearSearch = { viewModel.clearPdfSearch() },
                 onNextPage = { viewModel.nextPdfPage() },
                 onPrevPage = { viewModel.prevPdfPage() },
                 onJumpToPage = { viewModel.jumpToPdfPage(it) },
@@ -175,6 +193,8 @@ fun DocuViewerApp(viewModel: DocViewModel) {
                     selectedSheetIndex = selectedSheetIndex,
                     searchQuery = searchQuery,
                     selectedCells = selectedCells,
+                    isDarkMode = isDarkMode,
+                    onToggleDarkMode = { viewModel.toggleDarkMode() },
                     onSelectSheet = { viewModel.selectSheet(it) },
                     onSearchQueryChange = { viewModel.setSheetSearchQuery(it) },
                     onToggleCellSelection = { r, c -> viewModel.toggleCellSelection(r, c) },

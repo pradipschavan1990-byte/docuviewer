@@ -4,6 +4,11 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -23,10 +28,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material.icons.filled.ZoomOut
@@ -40,6 +49,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -81,6 +91,15 @@ fun PdfViewerScreen(
     currentPage: Int,
     bitmap: Bitmap?,
     isNightMode: Boolean,
+    searchQuery: String = "",
+    searchResultsCount: Int = 0,
+    currentMatchIndex: Int = 0,
+    isSearching: Boolean = false,
+    matchingPages: List<Int> = emptyList(),
+    onSearchQueryChange: (String) -> Unit = {},
+    onNextMatch: () -> Unit = {},
+    onPrevMatch: () -> Unit = {},
+    onClearSearch: () -> Unit = {},
     onNextPage: () -> Unit,
     onPrevPage: () -> Unit,
     onJumpToPage: (Int) -> Unit,
@@ -88,7 +107,17 @@ fun PdfViewerScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
-    BackHandler { onClose() }
+    var isSearchVisible by remember { mutableStateOf(false) }
+
+    // Intercept back button when search is open to close search first
+    BackHandler {
+        if (isSearchVisible) {
+            isSearchVisible = false
+            onClearSearch()
+        } else {
+            onClose()
+        }
+    }
 
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -96,57 +125,225 @@ fun PdfViewerScreen(
     var jumpPageInput by remember { mutableStateOf("") }
 
     val bgColor = if (isNightMode) Color(0xFF0F172A) else Color(0xFFE2E8F0)
+    val isMatchOnCurrentPage = matchingPages.contains(currentPage)
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "${StringsManager.get("page", language)} ${currentPage + 1} ${StringsManager.get("of", language)} $pageCount",
-                            style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.primary)
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onClose, modifier = Modifier.testTag("pdf_back_button")) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    // Night Mode Toggle
-                    IconButton(onClick = onToggleNightMode, modifier = Modifier.testTag("pdf_night_mode")) {
-                        Icon(
-                            imageVector = if (isNightMode) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = StringsManager.get("night_mode", language),
-                            tint = if (isNightMode) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    // Share File
-                    IconButton(
-                        onClick = {
-                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "application/pdf"
-                                putExtra(Intent.EXTRA_STREAM, uri)
-                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            }
-                            context.startActivity(Intent.createChooser(shareIntent, "Share PDF"))
+            Column {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "${StringsManager.get("page", language)} ${currentPage + 1} ${StringsManager.get("of", language)} $pageCount",
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.primary)
+                            )
                         }
-                    ) {
-                        Icon(Icons.Default.Share, contentDescription = "Share")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onClose, modifier = Modifier.testTag("pdf_back_button")) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    actions = {
+                        // Search Button
+                        IconButton(
+                            onClick = {
+                                isSearchVisible = !isSearchVisible
+                                if (!isSearchVisible) onClearSearch()
+                            },
+                            modifier = Modifier.testTag("pdf_search_toggle")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = StringsManager.get("search_label", language),
+                                tint = if (isSearchVisible) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Night Mode Toggle
+                        IconButton(onClick = onToggleNightMode, modifier = Modifier.testTag("pdf_night_mode")) {
+                            Icon(
+                                imageVector = if (isNightMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = StringsManager.get("night_mode", language),
+                                tint = if (isNightMode) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Share File
+                        IconButton(
+                            onClick = {
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "application/pdf"
+                                    putExtra(Intent.EXTRA_STREAM, uri)
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                context.startActivity(Intent.createChooser(shareIntent, "Share PDF"))
+                            }
+                        ) {
+                            Icon(Icons.Default.Share, contentDescription = "Share")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
-            )
+
+                // Expandable Search Bar
+                AnimatedVisibility(
+                    visible = isSearchVisible,
+                    enter = slideInVertically() + fadeIn(),
+                    exit = slideOutVertically() + fadeOut()
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        tonalElevation = 4.dp,
+                        shadowElevation = 4.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = searchQuery,
+                                    onValueChange = onSearchQueryChange,
+                                    placeholder = {
+                                        Text(
+                                            StringsManager.get("search_in_pdf", language),
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Search,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        if (isSearching) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(18.dp),
+                                                strokeWidth = 2.dp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        } else if (searchQuery.isNotEmpty()) {
+                                            IconButton(
+                                                onClick = onClearSearch,
+                                                modifier = Modifier.size(24.dp)
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Close,
+                                                    contentDescription = StringsManager.get("clear_search", language),
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                    },
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                                    ),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .testTag("pdf_search_input")
+                                )
+
+                                // Close search bar button
+                                IconButton(
+                                    onClick = {
+                                        isSearchVisible = false
+                                        onClearSearch()
+                                    },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(Icons.Default.Close, contentDescription = "Close Search")
+                                }
+                            }
+
+                            // Match Navigation & Counter Row
+                            if (searchQuery.isNotBlank()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 6.dp, start = 4.dp, end = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    if (searchResultsCount > 0) {
+                                        // Match indicator chip
+                                        Card(
+                                            shape = RoundedCornerShape(8.dp),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                                            )
+                                        ) {
+                                            Text(
+                                                text = "${currentMatchIndex + 1} / $searchResultsCount ${StringsManager.get("matches_found", language).substringAfter(" ")}",
+                                                style = MaterialTheme.typography.labelMedium.copy(
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                ),
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            )
+                                        }
+
+                                        // Prev and Next Match Buttons
+                                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            IconButton(
+                                                onClick = onPrevMatch,
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .testTag("pdf_prev_match")
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.KeyboardArrowUp,
+                                                    contentDescription = StringsManager.get("prev_match", language),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                            IconButton(
+                                                onClick = onNextMatch,
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .testTag("pdf_next_match")
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.KeyboardArrowDown,
+                                                    contentDescription = StringsManager.get("next_match", language),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    } else if (!isSearching) {
+                                        Text(
+                                            text = StringsManager.get("no_matches_found", language),
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                color = MaterialTheme.colorScheme.error
+                                            ),
+                                            modifier = Modifier.padding(vertical = 4.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         bottomBar = {
             Surface(
@@ -187,7 +384,52 @@ fun PdfViewerScreen(
                         }
                     }
 
-                    // Controls Row: Prev, Page Jump Pill, Next, Zoom Controls
+                    // Bottom Zoom Slider ("खालचा स्लाईड बार")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp)
+                    ) {
+                        IconButton(
+                            onClick = {
+                                scale = (scale - 0.25f).coerceAtLeast(0.75f)
+                                if (scale <= 1f) offset = Offset.Zero
+                            },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(Icons.Default.ZoomOut, contentDescription = StringsManager.get("zoom_out", language))
+                        }
+
+                        Slider(
+                            value = scale,
+                            onValueChange = { newScale ->
+                                scale = newScale
+                                if (scale <= 1f) offset = Offset.Zero
+                            },
+                            valueRange = 0.75f..4.0f,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 4.dp)
+                        )
+
+                        IconButton(
+                            onClick = {
+                                scale = (scale + 0.25f).coerceAtMost(4.0f)
+                            },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(Icons.Default.ZoomIn, contentDescription = StringsManager.get("zoom_in", language))
+                        }
+
+                        Text(
+                            text = "${(scale * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.width(42.dp)
+                        )
+                    }
+
+                    // Controls Row: Prev, Page Jump Pill, Next, Reset Zoom
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -209,16 +451,31 @@ fun PdfViewerScreen(
                                 showJumpDialog = true
                             },
                             shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                        ) {
-                            Text(
-                                text = "${StringsManager.get("page", language)} ${currentPage + 1} / $pageCount",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                ),
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isMatchOnCurrentPage) Color(0xFFFEF08A) else MaterialTheme.colorScheme.primaryContainer
                             )
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "${StringsManager.get("page", language)} ${currentPage + 1} / $pageCount",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isMatchOnCurrentPage) Color(0xFF854D0E) else MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                                if (isMatchOnCurrentPage) {
+                                    Text(
+                                        text = " • ★",
+                                        style = MaterialTheme.typography.labelMedium.copy(
+                                            color = Color(0xFFD97706),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
+                            }
                         }
 
                         // Next Page
@@ -230,25 +487,32 @@ fun PdfViewerScreen(
                             Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Next Page")
                         }
 
-                        // Zoom In/Out
-                        Row {
-                            IconButton(
-                                onClick = {
-                                    scale = (scale - 0.25f).coerceAtLeast(1f)
-                                    if (scale == 1f) offset = Offset.Zero
-                                }
-                            ) {
-                                Icon(Icons.Default.ZoomOut, contentDescription = "Zoom Out")
+                        // Reset zoom button
+                        TextButton(
+                            onClick = {
+                                scale = 1.0f
+                                offset = Offset.Zero
                             }
-
-                            IconButton(
-                                onClick = {
-                                    scale = (scale + 0.25f).coerceAtMost(4f)
-                                }
-                            ) {
-                                Icon(Icons.Default.ZoomIn, contentDescription = "Zoom In")
-                            }
+                        ) {
+                            Text(
+                                text = StringsManager.get("reset_zoom", language),
+                                fontSize = 11.sp
+                            )
                         }
+                    }
+
+                    // Watermark strictly at the bottom-right corner in 8sp
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 2.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            text = "Making by Pradeep Chavan",
+                            fontSize = 8.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                        )
                     }
                 }
             }
@@ -261,7 +525,7 @@ fun PdfViewerScreen(
                 .background(bgColor)
                 .pointerInput(Unit) {
                     detectTransformGestures { _, pan, zoom, _ ->
-                        scale = (scale * zoom).coerceIn(1f, 4f)
+                        scale = (scale * zoom).coerceIn(0.75f, 4f)
                         if (scale > 1f) {
                             val maxX = (size.width * (scale - 1)) / 2f
                             val maxY = (size.height * (scale - 1)) / 2f
@@ -277,8 +541,12 @@ fun PdfViewerScreen(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {
-                            scale = if (scale > 1f) 1f else 2f
-                            offset = Offset.Zero
+                            if (scale > 1.2f) {
+                                scale = 1.0f
+                                offset = Offset.Zero
+                            } else {
+                                scale = 2.0f
+                            }
                         }
                     )
                 },
@@ -299,18 +567,29 @@ fun PdfViewerScreen(
                             translationY = offset.y
                         )
                 )
-
-                // Tiny Watermark in bottom corner only
-                Text(
-                    text = "Making by Pradeep Chavan",
-                    fontSize = 8.sp,
-                    color = (if (isNightMode) Color.White else Color.Black).copy(alpha = 0.35f),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 8.dp, bottom = 4.dp)
-                )
             } else {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+
+            // Floating indicator if current page has search matches
+            if (isSearchVisible && isMatchOnCurrentPage) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFFFEF08A),
+                    shadowElevation = 6.dp,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 12.dp)
+                ) {
+                    Text(
+                        text = "🔍 ${String.format(StringsManager.get("match_on_page", language), currentPage + 1)}",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF854D0E)
+                        ),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
             }
         }
     }
