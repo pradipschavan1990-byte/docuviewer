@@ -436,7 +436,7 @@ fun HomeScreen(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "मोटोरोला टेस्ट PDF",
+                                    text = if (language == AppLanguage.MARATHI) "नमुना चाचणी PDF" else "Sample Test PDF",
                                     fontSize = 11.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis

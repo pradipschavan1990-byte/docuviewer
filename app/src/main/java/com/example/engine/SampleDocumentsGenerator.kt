@@ -14,7 +14,7 @@ import java.io.FileOutputStream
 object SampleDocumentsGenerator {
 
     suspend fun getOrCreateSamplePdf(context: Context): Uri = withContext(Dispatchers.IO) {
-        val file = File(context.filesDir, "मोटोरोला_G67_चाचणी_दस्तऐवज.pdf")
+        val file = File(context.filesDir, "नमुना_चाचणी_दस्तऐवज.pdf")
         if (!file.exists() || file.length() == 0L) {
             createSamplePdf(file)
         }
@@ -214,14 +214,14 @@ object SampleDocumentsGenerator {
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
         }
-        canvas1.drawText("DocuViewer - मोटोरोला G67 पॉवर टेस्ट", 30f, 50f, titlePaint)
+        canvas1.drawText("DocuViewer - नमुना चाचणी दस्तऐवज", 30f, 50f, titlePaint)
 
         val subTitlePaint = Paint().apply {
             color = Color.rgb(219, 234, 254)
             textSize = 13f
             isAntiAlias = true
         }
-        canvas1.drawText("Motorola G67 Power & Modern Android Direct PDF Test", 30f, 80f, subTitlePaint)
+        canvas1.drawText("Android Direct PDF & Document Test", 30f, 80f, subTitlePaint)
         canvas1.drawText("तारीख: २९ ऑक्टोबर २०२६ | आवृत्ती १.०", 30f, 105f, subTitlePaint)
 
         val textPaint = Paint().apply {
