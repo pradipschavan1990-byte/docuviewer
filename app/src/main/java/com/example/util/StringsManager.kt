@@ -83,7 +83,9 @@ object StringsManager {
         "clear_search" to "शोध पुसा",
         "search_label" to "मजकूर शोधा",
         "match_on_page" to "पान %1\$d वर",
-        "current_match_indicator" to "सामना %1\$d पैकी %2\$d"
+        "current_match_indicator" to "सामना %1\$d पैकी %2\$d",
+        "print" to "प्रिंट करा",
+        "print_document" to "दस्तऐवज प्रिंट करा"
     )
 
     private val englishStrings = mapOf(
@@ -156,6 +158,8 @@ object StringsManager {
         "clear_search" to "Clear search",
         "search_label" to "Search",
         "match_on_page" to "On page %1\$d",
-        "current_match_indicator" to "Match %1\$d of %2\$d"
+        "current_match_indicator" to "Match %1\$d of %2\$d",
+        "print" to "Print",
+        "print_document" to "Print Document"
     )
 }

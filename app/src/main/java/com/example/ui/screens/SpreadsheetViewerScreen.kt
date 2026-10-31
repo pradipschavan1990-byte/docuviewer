@@ -39,8 +39,10 @@ import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
+import com.example.util.PrintHelper
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.ZoomIn
@@ -75,8 +77,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -89,6 +93,7 @@ import androidx.compose.ui.unit.sp
 import com.example.model.SpreadsheetData
 import com.example.util.AppLanguage
 import com.example.util.StringsManager
+import kotlin.math.abs
 import kotlin.math.hypot
 import kotlinx.coroutines.launch
 
@@ -275,6 +280,19 @@ fun SpreadsheetViewerScreen(
                                 imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
                                 contentDescription = StringsManager.get("theme_toggle", language),
                                 tint = if (isDarkMode) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Print Spreadsheet via Android Print Manager
+                        IconButton(
+                            onClick = {
+                                currentSheet?.let { PrintHelper.printSpreadsheet(context, it, title) }
+                            },
+                            modifier = Modifier.testTag("spreadsheet_print_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Print,
+                                contentDescription = StringsManager.get("print", language)
                             )
                         }
 
@@ -795,36 +813,53 @@ fun SpreadsheetViewerScreen(
                 if (currentSheet != null) {
                     val colCount = currentSheet.maxColumns.coerceAtLeast(1)
 
+                    var isPinching by remember { mutableStateOf(false) }
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(if (isDarkMode) Color(0xFF0F172A) else Color(0xFFFFFFFF))
                             .pointerInput(Unit) {
                                 awaitEachGesture {
+                                    val activePointers = mutableMapOf<PointerId, Offset>()
                                     var previousDistance = -1f
-                                    do {
+
+                                    while (true) {
                                         val event = awaitPointerEvent(PointerEventPass.Initial)
-                                        val pressed = event.changes.filter { it.pressed }
-                                        if (pressed.size >= 2) {
-                                            // Multi-touch: two finger pinch to zoom in & out
-                                            val p1 = pressed[0].position
-                                            val p2 = pressed[1].position
-                                            val currentDistance = hypot(p2.x - p1.x, p2.y - p1.y)
+
+                                        // Track all currently pressed pointer positions
+                                        for (change in event.changes) {
+                                            if (change.pressed) {
+                                                activePointers[change.id] = change.position
+                                            } else {
+                                                activePointers.remove(change.id)
+                                            }
+                                        }
+
+                                        if (activePointers.size >= 2) {
+                                            isPinching = true
+                                            val points = activePointers.values.toList()
+                                            val currentDistance = hypot(points[0].x - points[1].x, points[0].y - points[1].y)
+
                                             if (previousDistance > 0f && currentDistance > 0f) {
                                                 val factor = currentDistance / previousDistance
-                                                if (factor in 0.5f..1.8f) {
+                                                if (factor in 0.4f..2.5f && abs(factor - 1f) > 0.001f) {
                                                     zoomScale = (zoomScale * factor).coerceIn(0.35f, 2.50f)
                                                 }
                                             }
                                             previousDistance = currentDistance
-                                            // Consume multi-touch to avoid click triggers
+
+                                            // Consume multi-touch to avoid click triggers or unwanted drags
                                             event.changes.forEach { it.consume() }
                                         } else {
+                                            isPinching = false
                                             previousDistance = -1f
-                                            // 1 finger or 0: do NOT consume!
-                                            // Single finger slides up and down smoothly via LazyColumn and horizontally via horizontalScrollState!
+                                            if (event.changes.none { it.pressed }) {
+                                                activePointers.clear()
+                                                break
+                                            }
                                         }
-                                    } while (event.changes.any { it.pressed })
+                                    }
                                 }
                             }
                     ) {
@@ -970,6 +1005,35 @@ fun SpreadsheetViewerScreen(
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+
+                        // Real-time floating zoom indicator badge while two-finger pinching
+                        if (isPinching) {
+                            Surface(
+                                shape = RoundedCornerShape(24.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f),
+                                shadowElevation = 10.dp,
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                                modifier = Modifier.align(Alignment.Center)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.ZoomIn,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Text(
+                                        text = "${(zoomScale * 100).toInt()}%",
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                 }
                             }
                         }

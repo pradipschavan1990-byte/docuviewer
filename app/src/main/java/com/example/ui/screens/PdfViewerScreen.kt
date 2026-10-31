@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ZoomIn
@@ -79,6 +80,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.util.AppLanguage
+import com.example.util.PrintHelper
 import com.example.util.StringsManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -172,6 +174,19 @@ fun PdfViewerScreen(
                                 imageVector = if (isNightMode) Icons.Default.LightMode else Icons.Default.DarkMode,
                                 contentDescription = StringsManager.get("night_mode", language),
                                 tint = if (isNightMode) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Print Document via Android Print Manager
+                        IconButton(
+                            onClick = {
+                                PrintHelper.printPdf(context, uri, title)
+                            },
+                            modifier = Modifier.testTag("pdf_print_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Print,
+                                contentDescription = StringsManager.get("print", language)
                             )
                         }
 
