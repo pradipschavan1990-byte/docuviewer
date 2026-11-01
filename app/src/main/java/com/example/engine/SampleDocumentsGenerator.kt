@@ -177,7 +177,7 @@ object SampleDocumentsGenerator {
             isAntiAlias = true
         }
         canvas.drawText("✔ महाभूलेख (MahaBhulekh) डिजिटल स्वाक्षरीत नमुना उतारा", 45f, y + 28f, notePaint)
-        canvas.drawText("मोटोरोला जी ६७ पॉवर वर DocuViewer द्वारे सुरक्षित व स्पष्ट पाहिला गेला.", 45f, y + 50f, textPaint)
+        canvas.drawText("DocuViewer द्वारे सुरक्षित व जलद पाहिला गेला.", 45f, y + 50f, textPaint)
         canvas.drawText("मुद्रण दिनांक: २९ ऑक्टोबर २०२६", 45f, y + 70f, textPaint)
 
         val tinyWatermarkPaint = Paint().apply {
@@ -237,7 +237,7 @@ object SampleDocumentsGenerator {
         }
 
         var y = 170f
-        canvas1.drawText("१. मोटोरोला फोनसाठी विशेष वैशिष्ट्ये:", 30f, y, boldPaint)
+        canvas1.drawText("१. प्रमुख वैशिष्ट्ये (Key Features):", 30f, y, boldPaint)
         y += 28f
 
         val features = listOf(
@@ -283,7 +283,7 @@ object SampleDocumentsGenerator {
 
         y += 30f
         val items = listOf(
-            Triple("1", "मोटोरोला G67 5G ॲक्सिसरीज", "1 नग"),
+            Triple("1", "स्मार्टफोन ॲक्सिसरीज किट", "1 नग"),
             Triple("2", "68W टर्बोपॉवर चार्जर केबल", "1 नग"),
             Triple("3", "स्क्रीन गार्ड टेम्पर्ड ग्लास", "2 नग"),
             Triple("4", "बॅक कव्हर सिलिकॉन केस", "1 नग")
