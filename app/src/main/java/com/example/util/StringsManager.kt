@@ -15,9 +15,7 @@ object StringsManager {
 
     private val marathiStrings = mapOf(
         "app_title" to "DocuViewer (दस्तऐवज व्ह्यूअर)",
-        "tagline" to "मोटोरोला व सर्व अँड्रॉइड फोनसाठी थेट व जलद पीडीएफ आणि एक्सेल व्ह्यूअर",
-        "moto_badge" to "मोटोरोला G67 पॉवर सह १००% सुसंगत",
-        "moto_badge_desc" to "अँड्रॉइड १४/१५ Scoped Storage आणि WhatsApp फाईल्स सहज उघडण्यासाठी ऑप्टिमाइझ केलेले",
+        "tagline" to "सर्व अँड्रॉइड फोनसाठी थेट व जलद पीडीएफ आणि एक्सेल व्ह्यूअर",
         "open_pdf" to "पीडीएफ उघडा",
         "open_pdf_sub" to "कोणतीही PDF थेट लोड करा",
         "open_excel" to "एक्सेल/CSV उघडा",
@@ -90,9 +88,7 @@ object StringsManager {
 
     private val englishStrings = mapOf(
         "app_title" to "DocuViewer",
-        "tagline" to "Direct & fast PDF, Excel and CSV document reader for Motorola & Android phones",
-        "moto_badge" to "100% Compatible with Moto G67 Power",
-        "moto_badge_desc" to "Engineered for Android 14/15 Scoped Storage and instant WhatsApp / Email opening",
+        "tagline" to "Direct & fast PDF, Excel and CSV document reader for Android",
         "open_pdf" to "Open PDF",
         "open_pdf_sub" to "Direct hardware rendering",
         "open_excel" to "Open Excel / CSV",
