@@ -16,6 +16,7 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,9 +28,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import android.widget.Toast
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -46,6 +51,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -110,10 +117,13 @@ fun PdfViewerScreen(
 ) {
     val context = LocalContext.current
     var isSearchVisible by remember { mutableStateOf(false) }
+    var isScreenshotMode by remember { mutableStateOf(false) }
 
-    // Intercept back button when search is open to close search first
+    // Intercept back button when screenshot mode or search is open
     BackHandler {
-        if (isSearchVisible) {
+        if (isScreenshotMode) {
+            isScreenshotMode = false
+        } else if (isSearchVisible) {
             isSearchVisible = false
             onClearSearch()
         } else {
@@ -131,8 +141,9 @@ fun PdfViewerScreen(
 
     Scaffold(
         topBar = {
-            Column {
-                TopAppBar(
+            if (!isScreenshotMode) {
+                Column {
+                    TopAppBar(
                     title = {
                         Column {
                             Text(
@@ -174,6 +185,27 @@ fun PdfViewerScreen(
                                 imageVector = if (isNightMode) Icons.Default.LightMode else Icons.Default.DarkMode,
                                 contentDescription = StringsManager.get("night_mode", language),
                                 tint = if (isNightMode) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Screenshot Clean View Mode Button (Camera icon 📸)
+                        IconButton(
+                            onClick = {
+                                isScreenshotMode = true
+                                Toast.makeText(
+                                    context,
+                                    StringsManager.get("screenshot_toast", language),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            modifier = Modifier
+                                .testTag("pdf_screenshot_mode_top")
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = StringsManager.get("screenshot_mode", language),
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
 
@@ -359,13 +391,15 @@ fun PdfViewerScreen(
                     }
                 }
             }
-        },
-        bottomBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
-                shadowElevation = 8.dp
-            ) {
+        }
+    },
+    bottomBar = {
+            if (!isScreenshotMode) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 8.dp,
+                    shadowElevation = 8.dp
+                ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -514,6 +548,30 @@ fun PdfViewerScreen(
                                 fontSize = 11.sp
                             )
                         }
+
+                        // Screenshot Clean View Button
+                        FilledTonalButton(
+                            onClick = {
+                                isScreenshotMode = true
+                                Toast.makeText(
+                                    context,
+                                    StringsManager.get("screenshot_toast", language),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            modifier = Modifier
+                                .height(32.dp)
+                                .testTag("pdf_screenshot_mode_bottom")
+                        ) {
+                            Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = StringsManager.get("screenshot_mode", language),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
 
                     // Watermark strictly at the bottom-right corner in 8sp
@@ -532,6 +590,7 @@ fun PdfViewerScreen(
                 }
             }
         }
+    }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -553,8 +612,13 @@ fun PdfViewerScreen(
                         }
                     }
                 }
-                .pointerInput(Unit) {
+                .pointerInput(isScreenshotMode) {
                     detectTapGestures(
+                        onTap = {
+                            if (isScreenshotMode) {
+                                isScreenshotMode = false
+                            }
+                        },
                         onDoubleTap = {
                             if (scale > 1.2f) {
                                 scale = 1.0f
@@ -605,6 +669,84 @@ fun PdfViewerScreen(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                     )
                 }
+            }
+
+            // Discreet floating exit button in screenshot mode
+            if (isScreenshotMode) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = (if (isNightMode) Color(0xFF1E293B) else Color.White).copy(alpha = 0.70f),
+                    shadowElevation = 6.dp,
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        (if (isNightMode) Color(0xFF475569) else Color(0xFFCBD5E1)).copy(alpha = 0.5f)
+                    ),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 16.dp, end = 16.dp)
+                ) {
+                    TextButton(
+                        onClick = { isScreenshotMode = false },
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FullscreenExit,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (isNightMode) Color.White else Color.Black
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = StringsManager.get("exit_screenshot_mode", language),
+                            fontSize = 11.sp,
+                            color = if (isNightMode) Color.White else Color.Black
+                        )
+                    }
+                }
+
+                // Tiny subtle watermark at bottom-right corner
+                Text(
+                    text = "Making by Pradeep Chavan",
+                    fontSize = 8.sp,
+                    color = (if (isNightMode) Color.White else Color.Black).copy(alpha = 0.25f),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 8.dp, bottom = 4.dp)
+                )
+            }
+
+            // Prominent Floating Screenshot Button (visible when not in screenshot mode)
+            if (!isScreenshotMode) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        isScreenshotMode = true
+                        Toast.makeText(
+                            context,
+                            StringsManager.get("screenshot_toast", language),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = StringsManager.get("screenshot_mode", language),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = StringsManager.get("screenshot_mode", language),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 16.dp, bottom = 16.dp)
+                        .testTag("pdf_screenshot_fab")
+                )
             }
         }
     }

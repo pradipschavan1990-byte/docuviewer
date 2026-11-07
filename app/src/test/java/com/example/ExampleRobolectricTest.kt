@@ -1,23 +1,19 @@
 package com.example
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import com.example.engine.ExcelEngine
+import com.example.util.AppLanguage
+import com.example.util.StringsManager
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36])
 class ExampleRobolectricTest {
 
   @Test
-  fun `read string from context`() {
-    val context = ApplicationProvider.getApplicationContext<Context>()
-    val appName = context.getString(R.string.app_name)
-    assertEquals("DocuViewer", appName)
+  fun `read string from StringsManager`() {
+    val titleMr = StringsManager.get("app_title", AppLanguage.MARATHI)
+    assertEquals("DocuViewer (दस्तऐवज व्ह्यूअर)", titleMr)
+    val titleEn = StringsManager.get("app_title", AppLanguage.ENGLISH)
+    assertEquals("DocuViewer", titleEn)
   }
 
   @Test

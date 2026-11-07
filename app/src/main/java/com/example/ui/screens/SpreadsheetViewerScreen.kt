@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -31,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.DarkMode
@@ -52,6 +54,7 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -255,15 +258,26 @@ fun SpreadsheetViewerScreen(
                             Icon(Icons.Default.ZoomIn, contentDescription = StringsManager.get("zoom_in", language))
                         }
 
-                        // Screenshot Clean View Mode button
+                        // Screenshot Clean View Mode button (Camera icon 📸)
                         IconButton(
                             onClick = {
                                 isScreenshotMode = true
-                                isControlsOverlayVisible = true
+                                isControlsOverlayVisible = false
+                                Toast.makeText(
+                                    context,
+                                    StringsManager.get("screenshot_toast", language),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             },
-                            modifier = Modifier.testTag("spreadsheet_screenshot_mode_top")
+                            modifier = Modifier
+                                .testTag("spreadsheet_screenshot_mode_top")
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                         ) {
-                            Icon(Icons.Default.CropFree, contentDescription = StringsManager.get("screenshot_mode", language))
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = StringsManager.get("screenshot_mode", language),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
 
                         // Search in Sheet
@@ -782,11 +796,16 @@ fun SpreadsheetViewerScreen(
 
                             Spacer(Modifier.width(4.dp))
 
-                            // Screenshot Mode Button
+                            // Screenshot Mode Button (Hides all options for clean photo)
                             FilledTonalButton(
                                 onClick = {
                                     isScreenshotMode = true
-                                    isControlsOverlayVisible = true
+                                    isControlsOverlayVisible = false
+                                    Toast.makeText(
+                                        context,
+                                        StringsManager.get("screenshot_toast", language),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 },
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
                                 modifier = Modifier
@@ -794,7 +813,7 @@ fun SpreadsheetViewerScreen(
                                     .testTag("spreadsheet_screenshot_mode_btn")
                             ) {
                                 Icon(
-                                    Icons.Default.CropFree,
+                                    Icons.Default.CameraAlt,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp)
                                 )
@@ -1043,116 +1062,39 @@ fun SpreadsheetViewerScreen(
 
             // Floating Minimal Zoom & Exit Controller in Screenshot Mode
             if (isScreenshotMode) {
-                AnimatedVisibility(
-                    visible = isControlsOverlayVisible,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
+                // Subtle floating exit button at top-right
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = (if (isDarkMode) Color(0xFF1E293B) else Color.White).copy(alpha = 0.70f),
+                    shadowElevation = 6.dp,
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        (if (isDarkMode) Color(0xFF475569) else Color(0xFFCBD5E1)).copy(alpha = 0.5f)
+                    ),
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 16.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(top = 16.dp, end = 16.dp)
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(28.dp),
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                        tonalElevation = 8.dp,
-                        shadowElevation = 8.dp,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    TextButton(
+                        onClick = { isScreenshotMode = false },
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            // Zoom Out (-) Button
-                            IconButton(
-                                onClick = { zoomScale = (zoomScale - 0.15f).coerceAtLeast(0.35f) },
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Icon(Icons.Default.ZoomOut, contentDescription = StringsManager.get("zoom_out", language))
-                            }
-
-                            // Zoom Percentage pill
-                            Card(
-                                onClick = {
-                                    zoomScale = when {
-                                        zoomScale < 0.65f -> 1.0f
-                                        zoomScale < 1.15f -> 0.55f
-                                        else -> 1.0f
-                                    }
-                                },
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                            ) {
-                                Text(
-                                    text = "${(zoomScale * 100).toInt()}%",
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    ),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
-                            }
-
-                            // Zoom In (+) Button
-                            IconButton(
-                                onClick = { zoomScale = (zoomScale + 0.15f).coerceAtMost(2.5f) },
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Icon(Icons.Default.ZoomIn, contentDescription = StringsManager.get("zoom_in", language))
-                            }
-
-                            // Quick 50% fit chip
-                            AssistChip(
-                                onClick = { zoomScale = 0.5f },
-                                label = { Text("50%", fontSize = 11.sp) },
-                                modifier = Modifier.height(28.dp)
-                            )
-
-                            // Exit Screenshot Mode Button
-                            FilledTonalButton(
-                                onClick = { isScreenshotMode = false },
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                                modifier = Modifier.height(30.dp)
-                            ) {
-                                Icon(Icons.Default.FullscreenExit, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    text = StringsManager.get("exit_screenshot_mode", language),
-                                    fontSize = 11.sp
-                                )
-                            }
-
-                            // Hide overlay icon (for 100% clean screenshot, user can tap screen to bring back)
-                            IconButton(
-                                onClick = { isControlsOverlayVisible = false },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(Icons.Default.VisibilityOff, contentDescription = "Hide controls for screenshot", modifier = Modifier.size(18.dp))
-                            }
-                        }
+                        Icon(
+                            imageVector = Icons.Default.FullscreenExit,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (isDarkMode) Color.White else Color.Black
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = StringsManager.get("exit_screenshot_mode", language),
+                            fontSize = 11.sp,
+                            color = if (isDarkMode) Color.White else Color.Black
+                        )
                     }
                 }
 
-                // If controls overlay is hidden, show a subtle floating button in corner to restore
-                if (!isControlsOverlayVisible) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
-                        shadowElevation = 4.dp,
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(16.dp)
-                    ) {
-                        IconButton(
-                            onClick = { isControlsOverlayVisible = true },
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(Icons.Default.Visibility, contentDescription = "Show controls", tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                        }
-                    }
-                }
-
-                // Tiny watermark strictly at bottom-right corner
+                // Tiny watermark strictly at bottom-right corner in 8sp
                 Text(
                     text = "Making by Pradeep Chavan",
                     fontSize = 8.sp,
@@ -1160,6 +1102,41 @@ fun SpreadsheetViewerScreen(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(end = 8.dp, bottom = 4.dp)
+                )
+            }
+
+            // Prominent Floating Screenshot Button (visible when not in screenshot mode)
+            if (!isScreenshotMode) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        isScreenshotMode = true
+                        isControlsOverlayVisible = false
+                        Toast.makeText(
+                            context,
+                            StringsManager.get("screenshot_toast", language),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = StringsManager.get("screenshot_mode", language),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = StringsManager.get("screenshot_mode", language),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 16.dp, bottom = 16.dp)
+                        .testTag("spreadsheet_screenshot_fab")
                 )
             }
         }
